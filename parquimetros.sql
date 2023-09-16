@@ -9,7 +9,7 @@ CREATE TABLE Conductores (
  nombre VARCHAR(45) NOT NULL, 
  apellido  VARCHAR(45) NOT NULL,
  direccion VARCHAR(45) NOT NULL, 
- telefono VARCHAR(45) NOT NULL, 
+ telefono VARCHAR(45), 
  registro INT UNSIGNED NOT NULL, 
  
  CONSTRAINT pk_conductores
@@ -20,9 +20,9 @@ CREATE TABLE Conductores (
 
 CREATE TABLE Automoviles (
  patente CHAR(6),
- marca VARCHAR(45),
- modelo VARCHAR(45),
- color VARCHAR(45),
+ marca VARCHAR(45) NOT NULL,
+ modelo VARCHAR(45) NOT NULL,
+ color VARCHAR(45) NOT NULL,
  dni INT UNSIGNED NOT NULL ,
 
 CONSTRAINT pk_automoviles
@@ -36,36 +36,38 @@ CONSTRAINT pk_automoviles
 )ENGINE=InnoDB;
 
 
-CREATE TABLE Tipo_tarjeta (
- tipo VARCHAR(45) ,
+CREATE TABLE Tipos_tarjeta (
+ tipo VARCHAR(45) NOT NULL ,
  descuento DECIMAL(3,2) CHECK (Descuento >= 0 AND Descuento <= 1), 
+
+
  
- CONSTRAINT pk_tipo_tarjeta
+ CONSTRAINT pk_Tipos_tarjeta
  PRIMARY KEY (tipo)
 
 ) ENGINE=InnoDB;
 
 
 CREATE TABLE Tarjetas  (
- patente CHAR(6),
- id_tarjeta INT UNSIGNED NOT NULL ,
+ patente CHAR(6) NOT NULL,
+ id_tarjeta INT UNSIGNED NOT NULL AUTO_INCREMENT  ,
  saldo DECIMAL(5,2) NOT NULL, 
- tipo VARCHAR(25), /*PREGUNTAR. enumerado o algo que marque especificamente los tipos??*/
+ tipo VARCHAR(25) NOT NULL, /*PREGUNTAR. enumerado o algo que marque especificamente los tipos??*/
 
  CONSTRAINT pk_tarjetas
  PRIMARY KEY (id_tarjeta),
 
  CONSTRAINT FK_Tarjetas
- FOREIGN KEY (patente) REFERENCES Automoviles(patente)
- 
+ FOREIGN KEY (patente) REFERENCES Automoviles(patente),
+  CONSTRAINT FK_Tipos_tarjeta
+ FOREIGN KEY (tipo) REFERENCES Tipos_tarjeta(tipo)
 
 
 ) ENGINE=InnoDB;
 
 
 CREATE TABLE Recargas (
- id_tarjeta INT UNSIGNED NOT NULL ,
- patente CHAR(6),
+ id_tarjeta INT UNSIGNED NOT NULL AUTO_INCREMENT,
  fecha  DATE NOT NULL,
  hora TIME NOT NULL,
  saldo_anterior DECIMAL(5,2) NOT NULL, 
@@ -87,7 +89,7 @@ CREATE TABLE Inspectores (
  dni INT UNSIGNED NOT NULL ,
  nombre VARCHAR(45) NOT NULL, 
  apellido  VARCHAR(45) NOT NULL,
- passwrd  CHAR(32) NOT NULL, 
+ password  CHAR(32) NOT NULL, 
  
  CONSTRAINT pk_Inspectores
  PRIMARY KEY (legajo)
@@ -98,7 +100,7 @@ CREATE TABLE Inspectores (
 CREATE TABLE Ubicaciones (
  calle VARCHAR(45),
  altura INT UNSIGNED NOT NULL,
- tarifa DECIMAL(5,2) CHECK (tarifa >= 0),
+ tarifa DECIMAL(5,2) CHECK (tarifa >= 0) UNSIGNED NOT NULL,
  
  CONSTRAINT pk_Ubicaciones
  PRIMARY KEY(altura,calle)
@@ -107,8 +109,8 @@ CREATE TABLE Ubicaciones (
 
 CREATE TABLE Parquimetros (
  id_parq INT UNSIGNED NOT NULL ,
- numero VARCHAR(45) NOT NULL, 
- calle VARCHAR(45),
+ numero INT UNSIGNED NOT NULL, 
+ calle VARCHAR(45) NOT NULL,
  altura INT UNSIGNED NOT NULL,
 
  CONSTRAINT FK_Parquimetros_Ubicaciones
@@ -127,8 +129,8 @@ CREATE TABLE Estacionamientos (
  id_parq INT UNSIGNED NOT NULL ,
  fecha_ent DATE NOT NULL, 
  hora_ent TIME NOT NULL,
- fecha_sal DATE NOT NULL, 
- hora_sal TIME NOT NULL,
+ fecha_sal DATE , 
+ hora_sal TIME ,
  id_tarjeta INT UNSIGNED NOT NULL ,
 
  CONSTRAINT FK_Estacionamientos_Tarjetas
@@ -163,13 +165,12 @@ CREATE TABLE Accede (
 ) ENGINE=InnoDB;
 
 CREATE TABLE Asociado_con (
- id_asociado_con INT UNSIGNED NOT NULL,
- dia CHAR(2), 
- turno CHAR(1),
- calle VARCHAR(45),
+ id_asociado_con INT UNSIGNED NOT NULL AUTO_INCREMENT,
+ dia ENUM('do', 'lu', 'ma', 'mi', 'ju', 'vi', 'sa') NOT NULL, 
+ turno ENUM('m', 't') NOT NULL,
+ calle VARCHAR(45) NOT NULL,
  altura INT UNSIGNED NOT NULL,
  legajo INT UNSIGNED NOT NULL ,
-
 
  CONSTRAINT FK_Asociado_con_Inspectores
  FOREIGN KEY (legajo) REFERENCES Inspectores(legajo),
@@ -183,11 +184,11 @@ CREATE TABLE Asociado_con (
 ) ENGINE=InnoDB;
 
 CREATE TABLE Multa (
- numero INT UNSIGNED NOT NULL,
+ numero INT UNSIGNED NOT NULL AUTO_INCREMENT,
  fecha DATE NOT NULL, 
  hora TIME NOT NULL,
  id_asociado_con INT UNSIGNED NOT NULL,
- patente CHAR(6),
+ patente CHAR(6) NOT NULL,
 
 
  CONSTRAINT FK_Multa_Asociado_con
@@ -219,7 +220,8 @@ GRANT INSERT ON parquimetros.Accede TO 'inspector'@'%';
 
 
 
-
+CREATE VIEW estacionados as 
+SELECT
 
 
  
@@ -230,7 +232,7 @@ INSERT INTO Conductores VALUES (44490499, "amparo", "gutierrez", "La cautiva y L
 INSERT INTO Automoviles VALUES("MBU", "volkswagen","a","rojo",44321404);
 
 
-INSERT INTO Tipo_tarjetas VALUES("A",0,15 );
+INSERT INTO Tipos_tarjetas VALUES("A",0,15 );
 INSERT INTO Tarjetas VALUES(123, 215.56,"A","MBU");
 INSERT INTO Recargas VALUES(123,'20-06-2017', '10:00:20',333.44,342.55);
 INSERT INTO Inspectores (legajo, dni, nombre, apellido, passwrd)
