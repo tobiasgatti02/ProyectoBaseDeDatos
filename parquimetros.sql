@@ -31,17 +31,13 @@ CONSTRAINT pk_automoviles
  CONSTRAINT FK_Automoviles
  FOREIGN KEY (dni) REFERENCES Conductores(dni)
 
- 
-
 )ENGINE=InnoDB;
 
 
 CREATE TABLE Tipos_tarjeta (
  tipo VARCHAR(45) NOT NULL ,
- descuento DECIMAL(3,2) CHECK (Descuento >= 0 AND Descuento <= 1), 
+ descuento DECIMAL(3,2) UNSIGNED NOT NULL CHECK (descuento >= 0 AND descuento <= 1),
 
-
- 
  CONSTRAINT pk_Tipos_tarjeta
  PRIMARY KEY (tipo)
 
@@ -52,7 +48,7 @@ CREATE TABLE Tarjetas  (
  patente CHAR(6) NOT NULL,
  id_tarjeta INT UNSIGNED NOT NULL AUTO_INCREMENT  ,
  saldo DECIMAL(5,2) NOT NULL, 
- tipo VARCHAR(25) NOT NULL, /*PREGUNTAR. enumerado o algo que marque especificamente los tipos??*/
+ tipo VARCHAR(25) NOT NULL,
 
  CONSTRAINT pk_tarjetas
  PRIMARY KEY (id_tarjeta),
@@ -89,7 +85,7 @@ CREATE TABLE Inspectores (
  dni INT UNSIGNED NOT NULL ,
  nombre VARCHAR(45) NOT NULL, 
  apellido  VARCHAR(45) NOT NULL,
- password  CHAR(32) NOT NULL, 
+ password  VARCHAR(32) NOT NULL, 
  
  CONSTRAINT pk_Inspectores
  PRIMARY KEY (legajo)
@@ -100,7 +96,7 @@ CREATE TABLE Inspectores (
 CREATE TABLE Ubicaciones (
  calle VARCHAR(45),
  altura INT UNSIGNED NOT NULL,
- tarifa DECIMAL(5,2) CHECK (tarifa >= 0) UNSIGNED NOT NULL,
+ tarifa DECIMAL(5,2) UNSIGNED NOT NULL CHECK (tarifa >= 0),
  
  CONSTRAINT pk_Ubicaciones
  PRIMARY KEY(altura,calle)
@@ -113,14 +109,13 @@ CREATE TABLE Parquimetros (
  calle VARCHAR(45) NOT NULL,
  altura INT UNSIGNED NOT NULL,
 
+
+
  CONSTRAINT FK_Parquimetros_Ubicaciones
- FOREIGN KEY (calle,altura) REFERENCES Ubicaciones(calle,altura),
-
-
-
+ FOREIGN KEY (altura,calle) REFERENCES Ubicaciones(altura,calle),
 
  CONSTRAINT pk_Parquimetros
- PRIMARY KEY (id_parq)
+ PRIMARY KEY(id_parq)
 
 ) ENGINE=InnoDB;
 
@@ -176,7 +171,7 @@ CREATE TABLE Asociado_con (
  FOREIGN KEY (legajo) REFERENCES Inspectores(legajo),
  
  CONSTRAINT FK_Asociado_con_Ubicaciones
- FOREIGN KEY (calle,altura) REFERENCES Ubicaciones(calle,altura),
+ FOREIGN KEY (altura,calle) REFERENCES Ubicaciones(altura,calle),
  
  CONSTRAINT pk_Asociado_con
  PRIMARY KEY (id_asociado_con)
@@ -203,8 +198,9 @@ CREATE TABLE Multa (
 ) ENGINE=InnoDB;
 
 
+
 CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
-GRANT ALL PRIVILEGES ON parquimetros.* TO 'admin'@'localhost';
+GRANT ALL PRIVILEGES ON parquimetros.* TO 'admin'@'localhost' WITH GRANT OPTION;
 
 CREATE USER 'venta'@'%' IDENTIFIED BY 'venta';
 GRANT INSERT, UPDATE ON parquimetros.Tarjetas TO 'venta'@'%';
@@ -212,19 +208,39 @@ GRANT INSERT ON parquimetros.Recargas TO 'venta'@'%';
 
 CREATE USER 'inspector'@'%' IDENTIFIED BY 'inspector';
 GRANT SELECT ON parquimetros.Estacionamientos TO 'inspector'@'%';
-GRANT EXECUTE ON FUNCTION /*o UPDATE ON parquimetros.inspectores.legajo*/ parquimetros.validar_legajo_password TO 'inspector'@'%';
-GRANT EXECUTE ON FUNCTION  /*o UPDATE ON parquimetros.inspectores.password*/parquimetros.validar_patente TO 'inspector'@'%';
-GRANT EXECUTE ON FUNCTION parquimetros.patentes_estacionamiento_abierto TO 'inspector'@'%';
+GRANT SELECT (legajo), UPDATE (legajo) ON parquimetros.Inspectores TO 'inspector'@'%';
+GRANT SELECT(legajo,password) ON parquimetros.Inspectores TO 'inspector'@'%';
+/*GRANT EXECUTE ON FUNCTION parquimetros.patentes_estacionamiento_abierto TO 'inspector'@'%';*/
 GRANT INSERT ON parquimetros.Multa TO 'inspector'@'%';
 GRANT INSERT ON parquimetros.Accede TO 'inspector'@'%';
 
 
+/*CREATE VIEW estacionados AS
+SELECT u.calle, u.altura e.fecha_ent e.hora_ent t.patente
+FROM Ubicaciones(
+    SELECT
+    id_tarjeta
+    FROM Tarjetas t
+    INNER JOIN Estacionamientos e
+    ON t.id_tarjeta = e.id_tarjeta
+    WHERE (e.hora_ent != NULL AND e.fecha_ent != NULL AND e.hora_sal = NULL)
+);
+*/
 
-CREATE VIEW estacionados as 
-SELECT
+CREATE VIEW estacionados AS
+SELECT u.calle, u.altura, e.fecha_ent, e.hora_ent, t.patente
+FROM Ubicaciones u
+INNER JOIN (
+    SELECT
+    id_tarjeta
+    FROM Tarjetas t
+    INNER JOIN Estacionamientos e
+    ON t.id_tarjeta = e.id_tarjeta
+    WHERE (e.hora_ent IS NOT NULL AND e.fecha_ent IS NOT NULL AND e.hora_sal IS NULL)
+) t
+ON u.id_tarjeta = t.id_tarjeta;
 
 
- 
 INSERT INTO Conductores VALUES (44321404, "tobias", "Gatti", "ed gon" ,2916446463 ,1);
 INSERT INTO Conductores VALUES (44490499, "amparo", "gutierrez", "La cautiva y Los piquillines", 2915223437, 4);
 
@@ -233,8 +249,11 @@ INSERT INTO Automoviles VALUES("MBU", "volkswagen","a","rojo",44321404);
 
 
 INSERT INTO Tipos_tarjetas VALUES("A",0,15 );
+
 INSERT INTO Tarjetas VALUES(123, 215.56,"A","MBU");
+
 INSERT INTO Recargas VALUES(123,'20-06-2017', '10:00:20',333.44,342.55);
+
 INSERT INTO Inspectores (legajo, dni, nombre, apellido, passwrd)
 VALUES (1, 55555555, 'Inspector', 'Apellido', 'contrasena_hash');
 
