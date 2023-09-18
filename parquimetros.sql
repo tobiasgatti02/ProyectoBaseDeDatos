@@ -225,7 +225,7 @@ FROM Ubicaciones(
     ON t.id_tarjeta = e.id_tarjeta
     WHERE (e.hora_ent != NULL AND e.fecha_ent != NULL AND e.hora_sal = NULL)
 );
-*/
+
 
 CREATE VIEW estacionados AS
 SELECT u.calle, u.altura, e.fecha_ent, e.hora_ent, t.patente
@@ -237,40 +237,71 @@ INNER JOIN (
     INNER JOIN Estacionamientos e
     ON t.id_tarjeta = e.id_tarjeta
     WHERE (e.hora_ent IS NOT NULL AND e.fecha_ent IS NOT NULL AND e.hora_sal IS NULL)
-) t
-ON u.id_tarjeta = t.id_tarjeta;
+);*/
+
+CREATE VIEW estacionados AS
+SELECT u.calle, u.altura, s.fecha_ent, s.hora_ent, s.patente
+FROM Ubicaciones u
+INNER JOIN (
+    SELECT t.id_tarjeta, e.fecha_ent, e.hora_ent, t.patente
+    FROM Tarjetas t
+    INNER JOIN Estacionamientos e
+    ON t.id_tarjeta = e.id_tarjeta
+    WHERE (e.hora_ent IS NOT NULL AND e.fecha_ent IS NOT NULL AND e.hora_sal IS NULL)
+)AS s;
 
 
-INSERT INTO Conductores VALUES (44321404, "tobias", "Gatti", "ed gon" ,2916446463 ,1);
-INSERT INTO Conductores VALUES (44490499, "amparo", "gutierrez", "La cautiva y Los piquillines", 2915223437, 4);
+
+INSERT INTO Conductores VALUES (44321404, 'tobias', 'Gatti', 'ed gon', '2916446463', 1);
+INSERT INTO Conductores VALUES (44490499, 'amparo', 'gutierrez', 'La cautiva y Los piquillines', '2915223437', 4);
+INSERT INTO Conductores VALUES (41099560, 'Guido', 'Reale', 'Angel Brunel', '2915038166', 5);
+
+INSERT INTO Automoviles VALUES('MBU793', 'volkswagen', 'a', 'rojo', 44321404);
+INSERT INTO Automoviles VALUES('ASD123', 'volkswagen', 'a', 'rojo', 44490499);
+INSERT INTO Automoviles VALUES('FGH456', 'volkswagen', 'a', 'rojo', 41099560);
 
 
-INSERT INTO Automoviles VALUES("MBU", "volkswagen","a","rojo",44321404);
+INSERT INTO Tipos_tarjeta VALUES('A', 0.15);
+
+INSERT INTO Tarjetas (patente,saldo,tipo)
+VALUES('MBU793', 215.56, 'A');
+INSERT INTO Tarjetas (patente,saldo,tipo)
+VALUES('ASD123', 215.56, 'A');
+INSERT INTO Tarjetas (patente,saldo,tipo)
+VALUES('FGH456', 215.56, 'A');
 
 
-INSERT INTO Tipos_tarjetas VALUES("A",0,15 );
+INSERT INTO Recargas (fecha, hora, saldo_anterior, saldo_posterior)
+VALUES('2023-06-20', '10:00:20', 333.44, 342.55);
 
-INSERT INTO Tarjetas VALUES(123, 215.56,"A","MBU");
-
-INSERT INTO Recargas VALUES(123,'20-06-2017', '10:00:20',333.44,342.55);
-
-INSERT INTO Inspectores (legajo, dni, nombre, apellido, passwrd)
+INSERT INTO Inspectores (legajo, dni, nombre, apellido, password)
 VALUES (1, 55555555, 'Inspector', 'Apellido', 'contrasena_hash');
 
 INSERT INTO Ubicaciones (calle, altura, tarifa)
 VALUES ('Calle Principal', 100, 2.50);
+INSERT INTO Ubicaciones (calle, altura, tarifa)
+VALUES ('Calle Secundaria', 150, 2.50);
+INSERT INTO Ubicaciones (calle, altura, tarifa)
+VALUES ('Tercer Calle', 200, 2.50);
 
 INSERT INTO Parquimetros (id_parq, numero, calle, altura)
-VALUES (1, 'PQ001', 'Calle Principal', 100);
+VALUES (1, 001, 'Calle Principal', 100);
+INSERT INTO Parquimetros (id_parq, numero, calle, altura)
+VALUES (2, 002, 'Calle Secundaria', 150);
+INSERT INTO Parquimetros (id_parq, numero, calle, altura)
+VALUES (3, 003, 'Tercer Calle', 200);
+
 
 INSERT INTO Estacionamientos (id_parq, fecha_ent, hora_ent, fecha_sal, hora_sal, id_tarjeta)
-VALUES (1, '2023-09-15', '10:00:00', '2023-09-15', '11:00:00', 1);
+VALUES (001, '2023-09-15', '10:00:00', '2023-09-15', '11:00:00', 1);
+INSERT INTO Estacionamientos (id_parq, fecha_ent, hora_ent, id_tarjeta)
+VALUES (002, '2023-09-15', '17:30:00', 2);
+INSERT INTO Estacionamientos (id_parq, fecha_ent, hora_ent, id_tarjeta)
+VALUES (003, '2023-09-15', '19:15:00', 3);
 
-INSERT INTO Accede (fecha, hora, legajo, id_parq)
-VALUES ('2023-09-15', '10:00:00', 1, 1);
 
 INSERT INTO Asociado_con (id_asociado_con, dia, turno, calle, altura, legajo)
 VALUES (1, 'LU', 'M', 'Calle Principal', 100, 1);
 
-INSERT INTO Multa (numero, fecha, hora, id_asociado_con, patente)
-VALUES (1, '2023-09-15', '11:30:00', 1, 'ABC123');
+INSERT INTO Multa (fecha, hora, id_asociado_con, patente)
+VALUES ('2023-09-15', '11:30:00', 1, 'MBU793');
