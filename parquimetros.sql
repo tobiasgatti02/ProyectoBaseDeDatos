@@ -210,46 +210,28 @@ CREATE USER 'inspector'@'%' IDENTIFIED BY 'inspector';
 GRANT SELECT ON parquimetros.Estacionamientos TO 'inspector'@'%';
 GRANT SELECT (legajo), UPDATE (legajo) ON parquimetros.Inspectores TO 'inspector'@'%';
 GRANT SELECT(legajo,password) ON parquimetros.Inspectores TO 'inspector'@'%';
-/*GRANT EXECUTE ON FUNCTION parquimetros.patentes_estacionamiento_abierto TO 'inspector'@'%';*/
 GRANT INSERT ON parquimetros.Multa TO 'inspector'@'%';
 GRANT INSERT ON parquimetros.Accede TO 'inspector'@'%';
+GRANT SELECT ON parquimetros.estacionados TO 'inspector'@'%';
 
+SELECT patente
+FROM estacionados
+WHERE calle = (SELECT calle FROM Parquimetros WHERE id_parq = 1)
+AND altura = (SELECT altura FROM Parquimetros WHERE id_parq = 1);
 
-/*CREATE VIEW estacionados AS
-SELECT u.calle, u.altura e.fecha_ent e.hora_ent t.patente
-FROM Ubicaciones(
-    SELECT
-    id_tarjeta
-    FROM Tarjetas t
-    INNER JOIN Estacionamientos e
-    ON t.id_tarjeta = e.id_tarjeta
-    WHERE (e.hora_ent != NULL AND e.fecha_ent != NULL AND e.hora_sal = NULL)
-);
 
 
 CREATE VIEW estacionados AS
-SELECT u.calle, u.altura, e.fecha_ent, e.hora_ent, t.patente
-FROM Ubicaciones u
+SELECT DISTINCT p.calle, p.altura, s.fecha_ent, s.hora_ent, s.patente
+FROM Parquimetros p
 INNER JOIN (
-    SELECT
-    id_tarjeta
+    SELECT t.id_tarjeta, e.fecha_ent, e.hora_ent, t.patente, e.id_parq
     FROM Tarjetas t
     INNER JOIN Estacionamientos e
     ON t.id_tarjeta = e.id_tarjeta
-    WHERE (e.hora_ent IS NOT NULL AND e.fecha_ent IS NOT NULL AND e.hora_sal IS NULL)
-);*/
-
-CREATE VIEW estacionados AS
-SELECT u.calle, u.altura, s.fecha_ent, s.hora_ent, s.patente
-FROM Ubicaciones u
-INNER JOIN (
-    SELECT t.id_tarjeta, e.fecha_ent, e.hora_ent, t.patente
-    FROM Tarjetas t
-    INNER JOIN Estacionamientos e
-    ON t.id_tarjeta = e.id_tarjeta
-    WHERE (e.hora_ent IS NOT NULL AND e.fecha_ent IS NOT NULL AND e.hora_sal IS NULL)
-)AS s;
-
+    WHERE (e.hora_ent IS NOT NULL AND e.fecha_ent IS NOT NULL AND e.hora_sal IS NULL AND e.fecha_sal IS NULL)
+)AS s
+ON p.id_parq = s.id_parq;
 
 
 INSERT INTO Conductores VALUES (44321404, 'tobias', 'Gatti', 'ed gon', '2916446463', 1);
@@ -262,20 +244,22 @@ INSERT INTO Automoviles VALUES('FGH456', 'volkswagen', 'a', 'rojo', 41099560);
 
 
 INSERT INTO Tipos_tarjeta VALUES('A', 0.15);
+INSERT INTO Tipos_tarjeta VALUES('B', 0.30);
+INSERT INTO Tipos_tarjeta VALUES('C', 0.60);
 
 INSERT INTO Tarjetas (patente,saldo,tipo)
 VALUES('MBU793', 215.56, 'A');
 INSERT INTO Tarjetas (patente,saldo,tipo)
-VALUES('ASD123', 215.56, 'A');
+VALUES('ASD123', 215.56, 'B');
 INSERT INTO Tarjetas (patente,saldo,tipo)
-VALUES('FGH456', 215.56, 'A');
+VALUES('FGH456', 215.56, 'C');
 
 
 INSERT INTO Recargas (fecha, hora, saldo_anterior, saldo_posterior)
 VALUES('2023-06-20', '10:00:20', 333.44, 342.55);
 
 INSERT INTO Inspectores (legajo, dni, nombre, apellido, password)
-VALUES (1, 55555555, 'Inspector', 'Apellido', 'contrasena_hash');
+VALUES (1, 55555555, 'Inspector', 'Apellido', 'inspector');
 
 INSERT INTO Ubicaciones (calle, altura, tarifa)
 VALUES ('Calle Principal', 100, 2.50);
@@ -293,11 +277,11 @@ VALUES (3, 003, 'Tercer Calle', 200);
 
 
 INSERT INTO Estacionamientos (id_parq, fecha_ent, hora_ent, fecha_sal, hora_sal, id_tarjeta)
-VALUES (001, '2023-09-15', '10:00:00', '2023-09-15', '11:00:00', 1);
+VALUES (1, '2023-09-15', '10:00:00', '2023-09-15', '11:00:00', 1);
 INSERT INTO Estacionamientos (id_parq, fecha_ent, hora_ent, id_tarjeta)
-VALUES (002, '2023-09-15', '17:30:00', 2);
+VALUES (2, '2023-09-15', '17:30:00', 2);
 INSERT INTO Estacionamientos (id_parq, fecha_ent, hora_ent, id_tarjeta)
-VALUES (003, '2023-09-15', '19:15:00', 3);
+VALUES (3, '2023-09-15', '19:15:00', 3);
 
 
 INSERT INTO Asociado_con (id_asociado_con, dia, turno, calle, altura, legajo)
