@@ -63,7 +63,7 @@ CREATE TABLE Tarjetas  (
 
 
 CREATE TABLE Recargas (
- id_tarjeta INT UNSIGNED NOT NULL AUTO_INCREMENT,
+ id_tarjeta INT UNSIGNED NOT NULL,
  fecha  DATE NOT NULL,
  hora TIME NOT NULL,
  saldo_anterior DECIMAL(5,2) NOT NULL, 
@@ -203,8 +203,10 @@ CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
 GRANT ALL PRIVILEGES ON parquimetros.* TO 'admin'@'localhost' WITH GRANT OPTION;
 
 CREATE USER 'venta'@'%' IDENTIFIED BY 'venta';
-GRANT INSERT, UPDATE ON parquimetros.Tarjetas TO 'venta'@'%';
+GRANT INSERT ON parquimetros.Tarjetas TO 'venta'@'%';
 GRANT INSERT ON parquimetros.Recargas TO 'venta'@'%';
+GRANT UPDATE (saldo) ON parquimetros.Tarjetas TO 'venta'@'%';
+
 
 CREATE USER 'inspector'@'%' IDENTIFIED BY 'inspector';
 GRANT SELECT ON parquimetros.Estacionamientos TO 'inspector'@'%';
@@ -213,11 +215,7 @@ GRANT SELECT(legajo,password) ON parquimetros.Inspectores TO 'inspector'@'%';
 GRANT INSERT ON parquimetros.Multa TO 'inspector'@'%';
 GRANT INSERT ON parquimetros.Accede TO 'inspector'@'%';
 GRANT SELECT ON parquimetros.estacionados TO 'inspector'@'%';
-
-SELECT patente
-FROM estacionados
-WHERE calle = (SELECT calle FROM Parquimetros WHERE id_parq = 1)
-AND altura = (SELECT altura FROM Parquimetros WHERE id_parq = 1);
+GRANT SELECT (id_parq) ON parquimetros.Parquimetros TO 'inspector'@'%';
 
 
 
