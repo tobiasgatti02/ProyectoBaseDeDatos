@@ -231,12 +231,6 @@ GRANT SELECT ON parquimetros.estacionados TO 'inspector'@'%';
 GRANT SELECT (id_parq,calle,altura) ON parquimetros.Parquimetros TO 'inspector'@'%';
 
 
-SELECT DISTINCT e.patente
-FROM estacionados e
-INNER JOIN Parquimetros p ON e.calle = p.calle AND e.altura = p.altura
-WHERE p.id_parq = 1;
-
-
 
 
 
